@@ -11,7 +11,7 @@ export default function AuthView() {
   const [password, setPassword] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [location, setLocation] = useState('');
-  const [industryType, setIndustryType] = useState('');
+  const [industryType, setIndustryType] = useState('Garmen');
   const [isLoading, setIsLoading] = useState(false);
 
   // 1. FUNGSI LOGIN (Masuk Portal)
@@ -24,10 +24,10 @@ export default function AuthView() {
         password: password,
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
             // Masukkan data user login ke AppContext global Anda
-            login(data.user); 
+            login(authData.user); 
             alert('Selamat datang kembali di EnviroChain!');
           } catch (error) {
             console.error('Login gagal:', error.message);
@@ -36,8 +36,6 @@ export default function AuthView() {
             setIsLoading(false);
           }
         };
-      // Ambil ID unik pengguna yang baru saja dibuat oleh Supabase
-      const userId = authData.user?.id;
 
 // 2. FUNGSI REGISTRASI (Daftar Akun Baru + Simpan Detail Pabrik)
   const handleRegister = async () => {
@@ -53,7 +51,9 @@ export default function AuthView() {
 
       const userId = authData.user?.id;
 
-      if (userId) {
+      if (!userId) {
+      throw new Error("User tidak terbentuk dari Supabase Auth");
+    
         // Langkah B: Masukkan data pabrik lengkap ke tabel 'companies' memakai ID di atas
         const { error: dbError } = await supabase
           .from('companies')
@@ -77,8 +77,10 @@ export default function AuthView() {
       alert('Gagal mendaftar: ' + error.message);
     } finally {
       setIsLoading(false);
+      console.log("SUPABASE URL:", import.meta.env.VITE_SUPABASE_URL);
     }
   };
+
 
   // 3. PENGENDALI UTAMA SUBMIT FORM
   const handleSubmit = (e) => {
@@ -91,10 +93,10 @@ export default function AuthView() {
   };
 
   return (
-<div className="min-h-screen flex items-center justify-center p-4 md:p-10 relative overflow-hidden bg-color-brand-50 dark:bg-brand-50-dark">
+  <div className="min-h-screen flex items-center justify-center p-4 md:p-10 relative overflow-hidden bg-color-brand-50 dark:bg-brand-50-dark">
       {/* Tombol Tema */}
       <div className="absolute top-6 right-6 z-100">
-        <button id='themeToggle' onClick={toggleTheme} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 shadow-md z-9999">
+        <button id='themeToggle' type="button" onClick={toggleTheme} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 shadow-md z-9999">
           <i className={`fa-solid ${isDarkMode ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
         </button>
       </div>
@@ -158,7 +160,7 @@ export default function AuthView() {
                 </button>
               </>
             ) : (
-              // TAMPILAN JIKA MODE DAFTAR AKUN BARU (Meminta Semua Data Lengkap)
+              // TAMPILAN JIKA MODE DAFTAR AKUN BARU
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
